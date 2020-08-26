@@ -14,6 +14,7 @@
 using namespace std;
 using Int = int64_t;
 using P = pair<Int, Int>;
+using PP = pair<Int, P>;
 const Int INF = 1<<30;
 const Int MOD = (Int)1e9 + 7;
 const Int MAX_N = (Int)1e5 + 5;
@@ -33,92 +34,51 @@ vector<vector<Int>> visited;
 const Int dy[] = {1, 0, -1, 0};
 const Int dx[] = {0, 1, 0, -1};
 
-Int ans = INF;
-Int num = 1;
- 
-bool bfs(Int sy, Int sx, vector<P> &pos)
-{
-    queue<P> que;
-    visited[sy][sx] = num;
-    que.push(make_pair(sy, sx));
+vector<int> wy, wx;
 
-    vector<P> tmp;
- 
+void bfs(int sy, int sx)
+{
+    priority_queue<PP, vector<PP>, greater<PP>> que;
+    que.push(PP(0, P(sy, sx)));
+    visited[sy][sx] = 0;
+
     while(!que.empty())
     {
-        P p = que.front();
-        que.pop();
- 
-        if(p.first == gy && p.second == gx)
+        PP p = que.top(); que.pop();
+        int y = p.second.first;
+        int x = p.second.second;
+
+        if(y == gy && x == gx) return;
+
+        // 1. move
+        for(int i = 0; i < 4; i++)
         {
-            return true;
-        }
- 
-        for(Int i = 0; i < 4; i++)
-        {
-            Int ny = p.first + dy[i];
-            Int nx = p.second + dx[i];
+            int ny = y + dy[i];
+            int nx = x + dx[i];
             if(ny < 0 || nx < 0 || ny >= h || nx >= w) continue;
-            if(board[ny][nx] == '#' || visited[ny][nx]) continue;
-            visited[ny][nx] = num;
-            que.push(make_pair(ny, nx));
-        }
- 
-        for(Int i = -2; i <= 2; i++)
-        {
-            for(Int j = -2; j <= 2; j++)
+            if(board[ny][nx] == '#') continue;
+            if(p.first < visited[ny][nx])
             {
-                Int ny = p.first + i;
-                Int nx = p.second + j;
-                if(ny < 0 || nx < 0 || ny >= h || nx >= w) continue;
-                if(board[ny][nx] == '#' || visited[ny][nx]) continue;
-                tmp.push_back(make_pair(ny, nx));
+                visited[ny][nx] = p.first;
+                que.push(PP(p.first, P(ny, nx)));
             }
         }
-    }
-
-    for(int i = 0; i < (Int)tmp.size(); i++)
-    {
-        if(visited[tmp[i].first][tmp[i].second]) continue;
-        pos.push_back(tmp[i]);
-    }
-
-    return false;
-}
  
-void dfs(Int sy, Int sx, Int res)
-{
-    vector<P> pos;
-    bool ok = bfs(sy, sx, pos);
-
-    // for(Int i = 0; i < h; i++)
-    // {
-    //     for(Int j = 0; j < w; j++) cout << visited[i][j] << " ";
-    //     cout << endl;
-    // }
-    // cout << endl;
-
-    if(ok)
-    {
-        ans = min(ans, res);
-        return;
-    }
-    
-    num++;
-
-    vector<vector<int>> tmp(h, vector<int>(w));
-    for(int i = 0; i < h; i++)
-    {
-        for(int j = 0; j < w; j++)
+        // 2. warp
+        for(int i = 0; i < wx.size(); i++)
         {
-            tmp[i][j] = visited[i][j];
+            int ny = y + wy[i];
+            int nx = x + wx[i];
+            if (ny < 0 || nx < 0 || ny >= h || nx >= w)
+                continue;
+            if (board[ny][nx] == '#')
+                continue;
+            if (p.first + 1 < visited[ny][nx])
+            {
+                visited[ny][nx] = p.first + 1;
+                que.push(PP(p.first + 1, P(ny, nx)));
+            }
         }
-    }
- 
-    for(Int i = 0; i < (Int)pos.size(); i++)
-    {
-        if(visited[pos[i].first][pos[i].second]) continue;
-        dfs(pos[i].first, pos[i].second, res + 1);
     }
 }
  
@@ -126,18 +86,44 @@ void solve()
 {
     cin >> h >> w;
     board.resize(h);
-    visited.resize(h, vector<Int>(w, 0));
+    visited.resize(h, vector<Int>(w, INF));
     Int sy, sx;
     cin >> sy >> sx;
     sy--, sx--;
+
     cin >> gy >> gx;
     gy--, gx--;
+
     for(Int i = 0; i < h; i++)
     {
         cin >> board[i];
     }
- 
-    dfs(sy, sx, 0);
+
+    for(int i = -2; i <= 2; i++)
+    {
+        for(int j = -2; j <= 2; j++)
+        {
+            if(i == 0 && j == 0) continue;
+            for(int k = 0; k < 4; k++)
+            {
+                if(i == dy[k] && j == dx[k]) continue;
+                wy.push_back(i);
+                wx.push_back(j);
+            }
+        }
+    }
+
+
+    bfs(sy, sx);
+
+    Int ans = visited[gy][gx];
+
+    // for(int i = 0; i < h; i++)
+    // {
+    //     for(int j = 0; j < w; j++) cout << setw(2) << visited[i][j] << " ";
+    //     cout << endl;
+    // }
+
     if(ans == INF)
     {
         cout << -1 << endl;
