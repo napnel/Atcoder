@@ -40,39 +40,28 @@ void solve()
         st.insert(P(h, w));
     }
 
-    debug(y);
-    debug(x);
-
     priority_queue<P> py, px;
-
-
     for(int i = 0; i < H; i++) py.push(P(y[i], i));
     for(int i = 0; i < W; i++) px.push(P(x[i], i));
 
     int ans = 0;
 
-    int init_h_count = py.top().first;
-    int init_w_count = px.top().first;
+    P target_h = py.top();
 
-    while (true)
+    for(int i = 0; i < W; i++)
     {
-        P h = py.top();
-        P w = px.top();
+        int cnt = target_h.first + x[i];
+        if(st.count(P(target_h.second, i))) cnt--;
+        ans = max(ans, cnt);
+    }
 
-        py.pop();
-        px.pop();
+    P target_w = px.top();
 
-        if (st.count(P(h.second, w.second)))
-        {
-            ans = max(ans, h.first + w.first - 1);
-        }
-        else
-        {
-            ans = max(ans, h.first + w.first);
-        }
-
-        debug(h);
-        debug(w);
+    for(int i = 0; i < H; i++)
+    {
+        int cnt = target_w.first + y[i];
+        if(st.count(P(i, target_w.second))) cnt--;
+        ans = max(ans, cnt);
     }
 
     cout << ans << endl;
