@@ -24,49 +24,33 @@ ostream &operator<<(ostream &os, const pair<T1, T2>& p) { os << p.first << " " <
 template<typename T>
 ostream &operator<<(ostream &os, const vector<T> &v) { for(Int i = 0; i < (Int) v.size(); i++) os << v[i] << (i + 1 != v.size() ? " " : ""); return os; }
 
-vector<Int> is_prime;
-void Era(Int n)
+vector<Int> eratosthenes(const Int &N)
 {
-    is_prime.resize(n + 1);
-    is_prime[0] = is_prime[1] = 0;
-    is_prime[2] = 1;
-    for(Int i = 3; i * i <= n; i += 2)
+    vector<Int> is_prime(N + 1);
+    for(int i = 0; i < is_prime.size(); i++) is_prime[i] = i;
+    is_prime[1] = 0;
+
+    for(Int i = 2; i * i <= N; i++)
     {
-        if(is_prime[i] == 0) continue;
-        for(Int j = 2 * i; j <= n; j += i) 
+        if(is_prime[i] != i) continue;
+        for(Int j = 2 * i; j <= N; j += i)
         {
-            is_prime[j] = 0;
+            is_prime[j] = min(is_prime[j], i);
         }
     }
+    return is_prime;
 }
 
-vector<Int> func(Int n)
+map<Int, Int> prime_factor(Int N, const vector<Int> &is_prime)
 {
-    vector<Int> res;
-    if(n % 2 == 0) res.push_back(2);
-    for(Int i = 3; i * i <= n; i += 2)
+    map<Int, Int> result;
+    while(N > 1)
     {
-        if(!is_prime[i]) continue;
-        if(n % i == 0) // iはnの約数である
-        {
-            res.push_back(i);
-            if(i * i != n) res.push_back(n / i);
-        }
+        // N = x * p(=is_prime[N]) 
+        result[is_prime[N]]++;
+        N = N / is_prime[N];
     }
-    sort(res.begin(), res.end());
-    return res;
-}
-
-Int GCD(Int a, Int b)
-{
-    if (a < 0)
-        a = -a;
-    if (b < 0)
-        b = -b;
-    if (b == 0)
-        return a;
-    else
-        return GCD(b, a % b);
+    return result;
 }
 
 void solve()
@@ -78,18 +62,18 @@ void solve()
         cin >> A[i];
     }
 
-    Era((Int)1e6+8);
+    vector<Int> is_prime = eratosthenes(*max_element(A.begin(), A.end()) + 1);
 
-    vector<vector<Int>> divisors;
+    vector<map<Int, Int>> buff;
     map<Int, Int> mp;
     for(Int i = 0; i < N; i++)
     {
-        vector<Int> tmp = func(A[i]);
-        for(Int j = 0; j < tmp.size(); j++)
+        map<Int, Int> tmp = prime_factor(A[i], is_prime);
+        for(const auto &x : tmp)
         {
-            mp[tmp[j]]++;
+            mp[x.first] += x.second;
         }
-        divisors.push_back(tmp);
+        buff.push_back(tmp);
     }
 
     bool ok = true;
@@ -97,16 +81,14 @@ void solve()
     for(Int i = 0; i < N; i++)
     {
         if(ok == false) break;
-        for(Int j = 0; j < divisors[i].size(); j++)
+        for(const auto &x : buff[i])
         {
-            mp[divisors[i][j]]--;
+            mp[x.first] -= x.second;
         }
 
-
-        for(Int j = 0; j < divisors[i].size(); j++)
+        for(const auto &x : buff[i])
         {
-            Int v = divisors[i][j];
-            if(mp[v] > 0)
+            if(mp[x.first] > 0)
             {
                 ok = false;
                 break;
@@ -123,7 +105,7 @@ void solve()
     Int v = A.front();
     for(Int i = 0; i < N; i++)
     {
-        v = GCD(v, A[i]);
+        v = gcd(v, A[i]);
     }
     if(v == 1)
     {
