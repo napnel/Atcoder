@@ -69,19 +69,31 @@ void solve()
         Int n = (Int)p.size();
         for(Int i = 0; i < n; i++) value += C[p[i]];
 
-        for(Int s = 0; s < n; s++)
+        if(value > 0)
         {
-            Int score = 0;
-            Int k = K;
-            if(k > 2 * n && value + C[s] > 0)
+            Int k = K % n + n;
+            for(int i = 0; i < n; i++)
             {
-                score += (k / n - 1) * (value + C[s]);
+                Int sum = value * (K / n - 1);
+                ans = max(ans, sum);
+                for (int j = 1; j <= k; j++)
+                {
+                    sum += C[p[(i + j) % n]];
+                    ans = max(ans, sum);
+                }
             }
-            k %= 2 * n;
-            for(Int i = 1; i <= k; i++)
+        }
+        else
+        {
+            Int k = min(n, K);
+            for(int i = 0; i < n; i++)
             {
-                score += C[p[(s + i) % n]];
-                ans = max(ans, score);
+                Int sum = 0; 
+                for(int j = 1; j <= k; j++)
+                {
+                    sum += C[p[(i + j) % n]];
+                    ans = max(ans, sum);
+                }
             }
         }
     }
