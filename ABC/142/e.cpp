@@ -24,64 +24,38 @@ ostream &operator<<(ostream &os, const pair<T1, T2>& p) { os << p.first << " " <
 template<typename T>
 ostream &operator<<(ostream &os, const vector<T> &v) { for(int i = 0; i < (int) v.size(); i++) os << v[i] << (i + 1 != v.size() ? " " : ""); return os; }
 
-Int N, M;
 
 void solve()
 {
+    Int N, M;
     cin >> N >> M;
-    map<Int, Int> tbit;
-    vector<Int> moneies(N);
+    vector<Int> tmask(M, 0);
+    vector<Int> moneies(M);
     for(int i = 0; i < M; i++)
     {
-        int a, b; cin >> a >> b;
+        Int a, b; cin >> a >> b;
         moneies[i] = a;
         for(int j = 0; j < b; j++)
         {
-            int c; cin >> c;
+            Int c; cin >> c;
             c--;
-            tbit[i] |= (1<<c);
+            tmask[i] |= (1<<c);
         }
     }
-    Int t = 0;
-    Int finished_bit = (1<<N) - 1;
-    Int ans = 0;
-    while(t != finished_bit)
+    Int digit = 1<<N;
+    vector<Int> dp(digit, INF);
+    dp[0] = 0;
+    for(int S = 0; S < digit; S++)
     {
-        // 最も費用効果が高い鍵を選ぶ
-        Int min_key_index = -1;
-        Int min_value = INF;
-        for(const auto &key : tbit)
+        for(int i = 0; i < M; i++)
         {
-            if(key.second == 0) continue;
-            // debug(key.second);
-            Int key_index = key.first;
-            Int flag_cnt = __builtin_popcount(key.second);
-            Int value = moneies[key_index] * flag_cnt; // 鍵の価値はお金×開けられる宝箱の個数
-            if(value < min_value)
-            {
-                min_value = value;
-                min_key_index = key_index;
-            }
+            Int T = S | tmask[i];
+            Int cost = dp[S] + moneies[i];
+            dp[T] = min(dp[T], cost);
         }
-        if(min_key_index == -1)
-        {
-            cout << -1 << endl;
-            return;
-        }
-        debug(min_key_index);
-
-        // 選んだ鍵に応じて他の鍵の効果を更新する
-        Int mask = tbit[min_key_index];
-        for(auto &key : tbit)
-        {
-            key.second &= ~mask;
-        }
-
-        ans += moneies[min_key_index];
-        t |= mask;
-        debug(t);
-        cout << endl;
     }
+    Int ans = dp.back();
+    if(ans == INF) ans = -1;
     cout << ans << endl;
 }
 
