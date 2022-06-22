@@ -1,7 +1,4 @@
 import argparse
-import subprocess
-from ast import parse
-from email.policy import default
 from pathlib import Path
 from typing import List
 
@@ -62,6 +59,10 @@ def main(args: argparse.Namespace):
 
     for problem in problems:
         problem_path: Path = dir / problem
+        if problem_path.with_suffix(".cpp").exists():
+            print(f"{problem} already exists")
+            continue
+
         problem_path.with_suffix(".cpp").write_text(template_code.lstrip("\n"))
 
     list_files = [str(file) for file in dir.glob("*.cpp")]
